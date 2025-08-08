@@ -645,7 +645,7 @@ class Transaksi extends CI_Controller {
 					array_push($cart, $item);
 					$this->session->set_userdata('cart', serialize($cart));
 				} else {
-					$cart[$index]['quantity']++;
+					$cart[$index]['qty']++;
 					$this->session->set_userdata('cart', serialize($cart));
 				}
 			}
@@ -753,5 +753,23 @@ public function history_bukuhilang()
 		$data['title_web'] = 'Cetak History Transaksi';
 		$this->load->view('transaksi/print_full_history_view', $data);
     }
+
+	// Method untuk mengecek apakah item sudah ada di cart
+	private function exists($id)
+	{
+		if(!$this->session->has_userdata('cart')) {
+			return -1;
+		}
+		
+		$cart = array_values(unserialize($this->session->userdata('cart')));
+		
+		foreach($cart as $index => $item) {
+			if($item['id'] == $id) {
+				return $index;
+			}
+		}
+		
+		return -1;
+	}
 
 }
