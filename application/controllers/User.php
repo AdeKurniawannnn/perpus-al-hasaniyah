@@ -319,17 +319,31 @@ class User extends CI_Controller {
             }
         }
         
+        // Dapatkan semua id_pinjam yang terkait dengan user ini
+        $pinjam_ids = $this->db->select('id_pinjam')
+                               ->where('anggota_id', $this->uri->segment('3'))
+                               ->get('tbl_pinjam')
+                               ->result_array();
+        
+        $pinjam_id_array = array_column($pinjam_ids, 'id_pinjam');
+        
+        // Hapus data pengembalian berdasarkan id_pinjam (bukan anggota_id)
+        if (!empty($pinjam_id_array)) {
+            $this->db->where_in('id_pinjam', $pinjam_id_array);
+            $this->db->delete('tbl_pengembalian');
+        }
+        
+        // Hapus data denda berdasarkan pinjam_id (bukan anggota_id)
+        if (!empty($pinjam_id_array)) {
+            $this->db->where_in('pinjam_id', $pinjam_id_array);
+            $this->db->delete('tbl_denda');
+        }
+        
         // Hapus data history dulu sebelum hapus user (foreign key constraint)
         $this->db->delete('tbl_history', array('anggota_id' => $this->uri->segment('3')));
         
         // Hapus data peminjaman
         $this->db->delete('tbl_pinjam', array('anggota_id' => $this->uri->segment('3')));
-        
-        // Hapus data pengembalian (gunakan nama tabel yang benar)
-        $this->db->delete('tbl_pengembalian', array('anggota_id' => $this->uri->segment('3')));
-        
-        // Hapus data denda
-        $this->db->delete('tbl_denda', array('anggota_id' => $this->uri->segment('3')));
         
         // Terakhir hapus user
 		$this->M_Admin->delete_table('tbl_login','id_login',$this->uri->segment('3'));
