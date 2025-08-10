@@ -306,13 +306,16 @@ class User extends CI_Controller {
         
         $user = $this->M_Admin->get_tableid_edit('tbl_login','id_login',$this->uri->segment('3'));
         
-        // Hapus file foto dengan error handling
-        if($user->foto && file_exists('./assets_style/image/'.$user->foto)) {
-            try {
-                unlink('./assets_style/image/'.$user->foto);
-            } catch (Exception $e) {
-                // Log error tapi lanjutkan proses
-                log_message('error', 'Gagal hapus file foto: ' . $e->getMessage());
+        // Hapus file foto dengan error handling yang lebih robust
+        if($user->foto && !empty($user->foto)) {
+            $file_path = './assets_style/image/'.$user->foto;
+            if(file_exists($file_path)) {
+                // Coba hapus dengan chmod dulu
+                @chmod($file_path, 0777);
+                if(!@unlink($file_path)) {
+                    // Kalau masih gagal, log error tapi lanjutkan
+                    log_message('error', 'Gagal hapus file foto: ' . $file_path);
+                }
             }
         }
         
@@ -322,8 +325,8 @@ class User extends CI_Controller {
         // Hapus data peminjaman
         $this->db->delete('tbl_pinjam', array('anggota_id' => $this->uri->segment('3')));
         
-        // Hapus data pengembalian
-        $this->db->delete('tbl_kembali', array('anggota_id' => $this->uri->segment('3')));
+        // Hapus data pengembalian (gunakan nama tabel yang benar)
+        $this->db->delete('tbl_pengembalian', array('anggota_id' => $this->uri->segment('3')));
         
         // Hapus data denda
         $this->db->delete('tbl_denda', array('anggota_id' => $this->uri->segment('3')));
