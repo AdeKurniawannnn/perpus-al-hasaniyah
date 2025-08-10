@@ -305,7 +305,30 @@ class User extends CI_Controller {
         if($this->uri->segment('3') == ''){ echo '<script>alert("halaman tidak ditemukan");window.location="'.base_url('user').'";</script>';}
         
         $user = $this->M_Admin->get_tableid_edit('tbl_login','id_login',$this->uri->segment('3'));
-        unlink('./assets_style/image/'.$user->foto);
+        
+        // Hapus file foto dengan error handling
+        if($user->foto && file_exists('./assets_style/image/'.$user->foto)) {
+            try {
+                unlink('./assets_style/image/'.$user->foto);
+            } catch (Exception $e) {
+                // Log error tapi lanjutkan proses
+                log_message('error', 'Gagal hapus file foto: ' . $e->getMessage());
+            }
+        }
+        
+        // Hapus data history dulu sebelum hapus user (foreign key constraint)
+        $this->db->delete('tbl_history', array('anggota_id' => $this->uri->segment('3')));
+        
+        // Hapus data peminjaman
+        $this->db->delete('tbl_pinjam', array('anggota_id' => $this->uri->segment('3')));
+        
+        // Hapus data pengembalian
+        $this->db->delete('tbl_kembali', array('anggota_id' => $this->uri->segment('3')));
+        
+        // Hapus data denda
+        $this->db->delete('tbl_denda', array('anggota_id' => $this->uri->segment('3')));
+        
+        // Terakhir hapus user
 		$this->M_Admin->delete_table('tbl_login','id_login',$this->uri->segment('3'));
 		
 		$this->session->set_flashdata('pesan','<div id="notifikasi"><div class="alert alert-warning">
