@@ -33,7 +33,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |	['dbcollat'] The character collation used in communicating with the database
 |				 NOTE: For MySQL and MySQLi databases, this setting is only used
 | 				 as a backup if your server is running PHP < 5.2.3 or MySQL < 5.0.7
-|				 (and in table creation queries made with DB Forge).
+| 				 (and in table creation queries made with DB Forge).
 | 				 There is an incompatibility in PHP with mysql_real_escape_string() which
 | 				 can make your site vulnerable to SQL injection if you are using a
 | 				 multi-byte character set and are running versions lower than these.
@@ -73,24 +73,59 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $active_group = 'default';
 $query_builder = TRUE;
 
-$db['default'] = array(
-	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'root',
-	'password' => '',
-	'database' => 'projek_perpus',
-	'dbdriver' => 'mysqli',
-	'dbprefix' => '',
-	'pconnect' => FALSE,
-	'db_debug' => (ENVIRONMENT !== 'production'),
-	'cache_on' => FALSE,
-	'cachedir' => '',
-	'char_set' => 'utf8',
-	'dbcollat' => 'utf8_general_ci',
-	'swap_pre' => '',
-	'encrypt' => FALSE,
-	'compress' => FALSE,
-	'stricton' => FALSE,
-	'failover' => array(),
-	'save_queries' => TRUE
-);
+// Railway Database Configuration
+// Get database credentials from Railway environment variables
+$railway_db_host = getenv('MYSQLHOST') ?: getenv('MYSQL_HOST') ?: 'mysql.railway.internal';
+$railway_db_port = getenv('MYSQLPORT') ?: getenv('MYSQL_PORT') ?: '3306';
+$railway_db_name = getenv('MYSQLDATABASE') ?: getenv('MYSQL_DATABASE') ?: 'railway';
+$railway_db_user = getenv('MYSQLUSER') ?: getenv('MYSQL_USER') ?: 'root';
+$railway_db_pass = getenv('MYSQLPASSWORD') ?: getenv('MYSQL_PASSWORD') ?: 'bVtkQHAqbFKxGoMuBoMslpIEaJogYtzv';
+
+// Check if we're on Railway (production)
+if ($railway_db_host && $railway_db_name && $railway_db_user) {
+    // Railway Production Database
+    $db['default'] = array(
+        'dsn'	=> '',
+        'hostname' => $railway_db_host . ':' . $railway_db_port,
+        'username' => $railway_db_user,
+        'password' => $railway_db_pass,
+        'database' => $railway_db_name,
+        'dbdriver' => 'mysqli',
+        'dbprefix' => '',
+        'pconnect' => FALSE,
+        'db_debug' => FALSE, // Disable debug in production
+        'cache_on' => FALSE,
+        'cache_dir' => '',
+        'char_set' => 'utf8',
+        'dbcollat' => 'utf8_general_ci',
+        'swap_pre' => '',
+        'encrypt' => FALSE,
+        'compress' => FALSE,
+        'stricton' => FALSE,
+        'failover' => array(),
+        'save_queries' => FALSE // Disable query logging in production
+    );
+} else {
+    // Local Development Database
+    $db['default'] = array(
+        'dsn'	=> '',
+        'hostname' => 'localhost',
+        'username' => 'root',
+        'password' => '',
+        'database' => 'perpus_new',
+        'dbdriver' => 'mysqli',
+        'dbprefix' => '',
+        'pconnect' => FALSE,
+        'db_debug' => (ENVIRONMENT !== 'production'),
+        'cache_on' => FALSE,
+        'cache_dir' => '',
+        'char_set' => 'utf8',
+        'dbcollat' => 'utf8_general_ci',
+        'swap_pre' => '',
+        'encrypt' => FALSE,
+        'compress' => FALSE,
+        'stricton' => FALSE,
+        'failover' => array(),
+        'save_queries' => TRUE
+    );
+}
